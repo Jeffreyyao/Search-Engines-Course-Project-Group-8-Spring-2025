@@ -17,7 +17,7 @@ class Page:
 
     def __repr__(self):
         return (f"Page(id={self.page_id}, parent_id={self.parent_id}, url='{self.url}', "
-                f"title='{self.title}', last_modified='{self.last_modified}', body='{self.body[:30]}...', "
+                f"title='{self.title}', last_modified='{self.last_modified}', body='{self.body}...', "
                 f"child_ids={self.child_ids})")
 
 

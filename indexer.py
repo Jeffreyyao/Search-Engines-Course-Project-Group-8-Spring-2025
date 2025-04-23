@@ -252,14 +252,15 @@ class Porter:
 
         return s
 
+import getPage as GetPage
+
 class File:
-    file_id = 0
-    def __init__(self, title_str: str, body_str: str):
+    def __init__(self, page: GetPage.Page):
+        self.page = page
         self.porter = Porter()
-        self.title = self.stem(self.stop(title_str.split()))
-        self.body = self.stem(self.stop(body_str.split()))
-        self.file_id = File.file_id
-        File.file_id += 1
+        self.title = " ".join(self.stem(self.stop(page.title.split())))
+        self.body = " ".join(self.stem(self.stop(page.body.split())))
+        self.file_id = page.page_id
 
     def __repr__(self):
         return f"File[{self.file_id}]"
