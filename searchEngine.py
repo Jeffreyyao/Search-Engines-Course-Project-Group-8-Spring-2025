@@ -2,6 +2,8 @@ import math
 from collections import defaultdict
 import re
 
+import indexer as Indexer
+
 class SearchEngine:
     def __init__(self):
         self.invInd = defaultdict(dict)  # {word: {docId: [positions]}}
@@ -50,6 +52,8 @@ class SearchEngine:
         return math.sqrt(len1) 
     
     def search(self, query, maxResults=50):
+        porter = Indexer.Porter()
+        query = " ".join([porter.strip_affixes(word) for word in query.split()])
         phMatched = re.findall(r'"([^"]+)"', query)
         remaining_query = re.sub(r'"[^"]+"', '', query).strip()
         allWd = []
