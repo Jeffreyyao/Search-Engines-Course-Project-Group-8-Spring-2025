@@ -6,11 +6,11 @@ import indexer as Indexer
 
 class SearchEngine:
     def __init__(self):
-        self.invInd = defaultdict(dict)  # {word: {docId: [positions]}}
-        self.docs = {}  # {docId: {'title': str, 'content': str, 'titleWd': list, 'contentWd': list}}
-        self.lenDoc = {}  # {docId: length}
+        self.invInd = defaultdict(dict) 
+        self.docs = {}  
+        self.lenDoc = {}  
         self.docNo = 0
-        self.freqWordDoc = defaultdict(int)  # {word: number of docs containing word}
+        self.freqWordDoc = defaultdict(int) 
     
     def preText(self, words):
         return re.findall(r'\b\w+\b', words.lower())
@@ -142,6 +142,40 @@ class SearchEngine:
                 if not contentPos:
                     break
         return bool(contentPos)
+        
+    def similarSearch(self, docId, originalQ=None, maxAns=50):
+        stop_words = {'a', 'about', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'being', 'but', 'by', 
+        'can', 'could', 'did', 'do', 'does', 'down', 'for', 'from', 'had', 'has', 'have',
+        'his', 'in', 'into', 'is', 'it', 'its', 'may', 'might', 'must', 'of', 'on', 'or',
+        'out', 'over', 'shall', 'should', 'the', 'their', 'them', 'these', 'they', 'this',
+        'those', 'to', 'under', 'up', 'was', 'were', 'will', 'with', 'would'
+        }
+        doc_info = self.docs[docId]
+        allwd = doc_info['titleWd'] + doc_info['contentWd']
+        wdCounts = Counter()
+        for wd in allwd:
+            if (wd not in stop_words and len(wd) > 2 and wd.isalpha() and wd.lower() == wd): 
+                wdCounts[wd] += 1
+        topSearch = [wd for wd, count in wdCounts.most_common(5)]
+        if not topSearch:
+            return []
+        if originalQ:
+            originalSearch = []  
+            for t in self.preText(originalQ):  
+                if t not in stop_words and len(t) > 2:  
+                    originalSearch.append(t)  
+            combinedSearch = list(set(originalSearch + topSearch))
+            newQ = ' '.join(combinedSearch)
+        else:
+            newQ = ' '.join(topSearch)
+        similarSearch = self.search(newQ, maxAns)
+        newSearch = []
+        for doc in similarSearch:
+            if doc != docId:
+                newSearch.append(doc)
+        similarSearch = newSearch
+        
+        return similarSearch[:maxAns]
 
 # Example only
 if __name__ == "__main__":
@@ -151,9 +185,14 @@ if __name__ == "__main__":
     engine.indexDoc(1, "Hong Kong Universities", "Hong Kong has several prestigious universities including HKUST.")
     engine.indexDoc(2, "Chinese Universities", "China has many top universities such as Tsinghua and Peking University.")
     engine.indexDoc(3, "Education in Hong Kong", "The education system in Hong Kong is competitive with many international schools.")
+    engine.indexDoc(4, "Top Asian Universities", "Asian universities like HKU, HKUST, Tsinghua, and NUS are among the best in the world.")
+    engine.indexDoc(5, "University Rankings", "Global university rankings often feature institutions from Hong Kong and China prominently.")
     
     # Perform searches
     print("Search for 'hong kong':", engine.search("hong kong"))
     print("Search for phrase '\"science\"':", engine.search('"science"'))
     print("Search for 'universities':", engine.search("universities"))
     print("Search for 'hong kong universities':", engine.search("hong kong universities"))
+    if engine.search("hong kong universities"):
+        similar_pages = engine.similarSearch(engine.search("hong kong universities")[0], "hong kong universities")
+        print("\nSimilar pages to document", engine.search("hong kong universities")[0], ":", similar_pages)
