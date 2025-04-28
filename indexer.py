@@ -1,4 +1,5 @@
-import json
+import math, re
+from collections import defaultdict
 from typing import List
 
 class Porter:
@@ -274,33 +275,53 @@ class File:
     
 class Indexer:
     def __init__(self, files: List[File]):
-        self.files = files
-        self.inverted_file_title = {}
-        self.inverted_file_body = {}
+        self.invInd = defaultdict(dict) 
+        self.docs = {}  
+        self.lenDoc = {}  
+        self.docNo = 0
+        self.freqWordDoc = defaultdict(int)
 
-    def index(self):
-        for file in self.files:
-            # index words in title
-            for word in file.title:
-                if word not in self.inverted_file_title:
-                    self.inverted_file_title[word] = set()
-                self.inverted_file_title[word].add(file)
-            # index words in body
-            for word in file.body:
-                if word not in self.inverted_file_body:
-                    self.inverted_file_body[word] = set()
-                self.inverted_file_body[word].add(file)
+    def preText(self, words):
+        return re.findall(r'\b\w+\b', words.lower())
     
-    def dump_index_pretty(self, index) -> str:
-        index_pretty = {}
-        for word, files in index.items():
-            index_pretty[word] = [f"File[{file.file_id}]" for file in files]
-        return json.dumps(index_pretty, sort_keys=True, indent=4)
+    def findLenDoc(self, docId):
+        doc_info = self.docs[docId]
+        allWd = doc_info['titleWd'] + doc_info['contentWd']
+        wdWeights = {}
+        for word in set(allWd):
+            tf = allWd.count(word)
+            tfMax = max([allWd.count(t) for t in set(allWd)] or [1])
+            idf = math.log(self.docNo / (self.freqWordDoc[word] or 1))
+            wdWeights[word] = idf* (tf / tfMax) 
+        len1 = 0
+        for w in wdWeights.values():
+            len1 += w**2
+        return math.sqrt(len1) 
+
+    def indexDoc(self, docID, title, content):
+        titleWd = self.preText(title)
+        contentWd = self.preText(content)
+        self.docNo += 1
+        self.docs[docID] = {
+            'title': title,
+            'content': content,
+            'titleWd': titleWd,
+            'contentWd': contentWd
+        }
+        for position, word in enumerate(titleWd):
+            if docID not in self.invInd[word]:
+                self.invInd[word][docID] = {'titlePos': [], 'contentPos': []}
+                self.freqWordDoc[word] += 1
+            self.invInd[word][docID]['titlePos'].append(position)
+        for position, word in enumerate(contentWd):
+            if docID not in self.invInd[word]:
+                self.invInd[word][docID] = {'titlePos': [], 'contentPos': []}
+                self.freqWordDoc[word] += 1
+            self.invInd[word][docID]['contentPos'].append(position)
+        self.lenDoc[docID] = self.findLenDoc(docID)
 
 if __name__ == "__main__":
     file1 = File("This is the Test page for a crawler", "Before getting the Admission of CSE department of HKUST, You should read through these international news and these books.")
     file2 = File("CSE department of HKUST", "PG Admission UG Admission Back to main")
     indexer = Indexer([file1, file2])
     indexer.index()
-    print("Title Index:", indexer.dump_index_pretty(indexer.inverted_file_title))
-    print("Body Index:", indexer.dump_index_pretty(indexer.inverted_file_body))

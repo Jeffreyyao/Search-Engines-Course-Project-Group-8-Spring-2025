@@ -5,51 +5,8 @@ import re
 import indexer as Indexer
 
 class SearchEngine:
-    def __init__(self):
-        self.invInd = defaultdict(dict) 
-        self.docs = {}  
-        self.lenDoc = {}  
-        self.docNo = 0
-        self.freqWordDoc = defaultdict(int) 
-    
-    def preText(self, words):
-        return re.findall(r'\b\w+\b', words.lower())
-    
-    def indexDoc(self, docID, title, content):
-        titleWd = self.preText(title)
-        contentWd = self.preText(content)
-        self.docNo += 1
-        self.docs[docID] = {
-            'title': title,
-            'content': content,
-            'titleWd': titleWd,
-            'contentWd': contentWd
-        }
-        for position, word in enumerate(titleWd):
-            if docID not in self.invInd[word]:
-                self.invInd[word][docID] = {'titlePos': [], 'contentPos': []}
-                self.freqWordDoc[word] += 1
-            self.invInd[word][docID]['titlePos'].append(position)
-        for position, word in enumerate(contentWd):
-            if docID not in self.invInd[word]:
-                self.invInd[word][docID] = {'titlePos': [], 'contentPos': []}
-                self.freqWordDoc[word] += 1
-            self.invInd[word][docID]['contentPos'].append(position)
-        self.lenDoc[docID] = self.findLenDoc(docID)
-    
-    def findLenDoc(self, docId):
-        doc_info = self.docs[docId]
-        allWd = doc_info['titleWd'] + doc_info['contentWd']
-        wdWeights = {}
-        for word in set(allWd):
-            tf = allWd.count(word)
-            tfMax = max([allWd.count(t) for t in set(allWd)] or [1])
-            idf = math.log(self.docNo / (self.freqWordDoc[word] or 1))
-            wdWeights[word] = idf* (tf / tfMax) 
-        len1 = 0
-        for w in wdWeights.values():
-            len1 += w**2
-        return math.sqrt(len1) 
+    def __init__(self, indexer: Indexer): 
+        self.indexer = indexer
     
     def search(self, query, maxResults=50):
         porter = Indexer.Porter()
@@ -58,15 +15,15 @@ class SearchEngine:
         remaining_query = re.sub(r'"[^"]+"', '', query).strip()
         allWd = []
         for phrase in phMatched:
-            allWd.extend(self.preText(phrase))
+            allWd.extend(self.indexer.preText(phrase))
         if remaining_query:
-            allWd.extend(self.preText(remaining_query))
+            allWd.extend(self.indexer.preText(remaining_query))
         if not allWd:
             return []
         candidate_docs = set()
         for word in allWd:
-            if word in self.invInd:
-                candidate_docs.update(self.invInd[word].keys())
+            if word in self.indexer.invInd:
+                candidate_docs.update(self.indexer.invInd[word].keys())
         scores = []
         for docId in candidate_docs:
             score = self.calculate_doc_score(docId, allWd, phMatched)
@@ -75,18 +32,18 @@ class SearchEngine:
         return [docId for docId, score in scores[:maxResults]]
     
     def calculate_doc_score(self, docId, Qwd, phMatched):
-        doc_info = self.docs[docId]
+        doc_info = self.indexer.docs[docId]
         allDocWd = doc_info['titleWd'] + doc_info['contentWd']
         wQ = {}
         for word in set(Qwd):
             tf_query = Qwd.count(word)
-            idf = math.log(self.docNo / (self.freqWordDoc.get(word, 1) or 1))
+            idf = math.log(self.indexer.docNo / (self.indexer.freqWordDoc.get(word, 1) or 1))
             wQ[word] = tf_query * idf
         wDoc = {}
         for word in set(allDocWd):
             tf_doc = allDocWd.count(word)
             tfMax = max([allDocWd.count(t) for t in set(allDocWd)] or [1])
-            idf = math.log(self.docNo / (self.freqWordDoc.get(word, 1) or 1))
+            idf = math.log(self.indexer.docNo / (self.indexer.freqWordDoc.get(word, 1) or 1))
             wB = (tf_doc / tfMax) * idf  
             titleNo = doc_info['titleWd'].count(word)
             if titleNo > 0:
@@ -97,12 +54,12 @@ class SearchEngine:
             if word in wDoc:
                 dotProduct += wQ[word] * wDoc[word]
         lenQ = math.sqrt(sum(w**2 for w in wQ.values()))
-        lenDoc = self.lenDoc[docId]
+        lenDoc = self.indexer.lenDoc[docId]
         if lenQ == 0 or lenDoc == 0:
             return 0
         cosSim = dotProduct / (lenQ * lenDoc)
         for phrase in phMatched:
-            phWd = self.preText(phrase)
+            phWd = self.indexer.preText(phrase)
             if self.check_phrase_in_doc(docId, phWd):
                 cosSim *= 1.5  
         return cosSim
@@ -111,11 +68,11 @@ class SearchEngine:
         if len(phWd) == 0:
             return False
         for word in phWd:
-            if word not in self.invInd or docId not in self.invInd[word]:
+            if word not in self.indexer.invInd or docId not in self.indexer.invInd[word]:
                 return False
         titlePos = []
         for i, word in enumerate(phWd):
-            positions = self.invInd[word][docId]['titlePos']
+            positions = self.indexer.invInd[word][docId]['titlePos']
             if i == 0:
                 titlePos = positions
             else:
@@ -130,7 +87,7 @@ class SearchEngine:
             return True
         contentPos = []
         for i, word in enumerate(phWd):
-            positions = self.invInd[word][docId]['contentPos']
+            positions = self.indexer.invInd[word][docId]['contentPos']
             if i == 0:
                 contentPos = positions
             else:
@@ -150,7 +107,7 @@ class SearchEngine:
         'out', 'over', 'shall', 'should', 'the', 'their', 'them', 'these', 'they', 'this',
         'those', 'to', 'under', 'up', 'was', 'were', 'will', 'with', 'would'
         }
-        doc_info = self.docs[docId]
+        doc_info = self.indexer.docs[docId]
         allwd = doc_info['titleWd'] + doc_info['contentWd']
         wdCounts = Counter()
         for wd in allwd:
@@ -161,7 +118,7 @@ class SearchEngine:
             return []
         if originalQ:
             originalSearch = []  
-            for t in self.preText(originalQ):  
+            for t in self.indexer.preText(originalQ):  
                 if t not in stop_words and len(t) > 2:  
                     originalSearch.append(t)  
             combinedSearch = list(set(originalSearch + topSearch))
