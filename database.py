@@ -103,6 +103,22 @@ class Database:
                       str(positions.get('contentPos', []))))
         self.conn.commit()
 
+    def load_inverted_index(self) -> Dict[str, Dict[int, Dict[str, List[int]]]]:
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT * FROM inverted_index')
+        
+        invInd = {}
+        for row in cursor.fetchall():
+            word, doc_id, title_positions, content_positions = row
+            if word not in invInd:
+                invInd[word] = {}
+            invInd[word][doc_id] = {
+                'titlePos': ast.literal_eval(title_positions),
+                'contentPos': ast.literal_eval(content_positions)
+            }
+        
+        return invInd
+
     def save_search_results(self, query: str, results: List[tuple]):
         cursor = self.conn.cursor()
         for doc_id, score in results:
@@ -111,6 +127,30 @@ class Database:
             VALUES (?, ?, ?)
             ''', (query, doc_id, score))
         self.conn.commit()
+
+    def load_search_results(self, query: str = None) -> List[tuple]:
+        """
+        Load search results from database. If query is provided, load results for that specific query.
+        Otherwise load all results.
+        Returns list of tuples containing (query, doc_id, score, timestamp)
+        """
+        cursor = self.conn.cursor()
+        
+        if query:
+            cursor.execute('''
+            SELECT query, doc_id, score, timestamp 
+            FROM search_results
+            WHERE query = ?
+            ORDER BY score DESC
+            ''', (query,))
+        else:
+            cursor.execute('''
+            SELECT query, doc_id, score, timestamp
+            FROM search_results
+            ORDER BY query, score DESC
+            ''')
+            
+        return cursor.fetchall()
 
     def save_indexer_data(self, docs: Dict[int, Dict[str, Any]], lenDoc: Dict[int, int], docNo: int, freqWordDoc: Dict[str, int]):
         cursor = self.conn.cursor()
@@ -176,22 +216,6 @@ class Database:
         docNo = cursor.fetchone()[0]
         
         return docs, lenDoc, docNo, freqWordDoc
-
-    def load_inverted_index(self) -> Dict[str, Dict[int, Dict[str, List[int]]]]:
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT * FROM inverted_index')
-        
-        invInd = {}
-        for row in cursor.fetchall():
-            word, doc_id, title_positions, content_positions = row
-            if word not in invInd:
-                invInd[word] = {}
-            invInd[word][doc_id] = {
-                'titlePos': ast.literal_eval(title_positions),
-                'contentPos': ast.literal_eval(content_positions)
-            }
-        
-        return invInd
 
     def close(self):
         self.conn.close() 
