@@ -1,6 +1,6 @@
 import math
-from collections import defaultdict
 import re
+from collections import Counter
 
 import indexer as Indexer
 
@@ -108,12 +108,7 @@ class SearchEngine:
         return bool(contentPos)
         
     def similarSearch(self, docId, originalQ=None, maxAns=50):
-        stop_words = {'a', 'about', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'being', 'but', 'by', 
-        'can', 'could', 'did', 'do', 'does', 'down', 'for', 'from', 'had', 'has', 'have',
-        'his', 'in', 'into', 'is', 'it', 'its', 'may', 'might', 'must', 'of', 'on', 'or',
-        'out', 'over', 'shall', 'should', 'the', 'their', 'them', 'these', 'they', 'this',
-        'those', 'to', 'under', 'up', 'was', 'were', 'will', 'with', 'would'
-        }
+        stop_words = Indexer.File.get_stop_words_set()
         doc_info = self.indexer.docs[docId]
         allwd = doc_info['titleWd'] + doc_info['contentWd']
         wdCounts = Counter()
@@ -142,15 +137,15 @@ class SearchEngine:
         return similarSearch[:maxAns]
 
 # Example only
-if __name__ == "__main__":
-    engine = SearchEngine()
-    
-    # Index some docs, should be importing from DB instead
-    engine.indexDoc(1, "Hong Kong Universities", "Hong Kong has several prestigious universities including HKUST.")
-    engine.indexDoc(2, "Chinese Universities", "China has many top universities such as Tsinghua and Peking University.")
-    engine.indexDoc(3, "Education in Hong Kong", "The education system in Hong Kong is competitive with many international schools.")
-    engine.indexDoc(4, "Top Asian Universities", "Asian universities like HKU, HKUST, Tsinghua, and NUS are among the best in the world.")
-    engine.indexDoc(5, "University Rankings", "Global university rankings often feature institutions from Hong Kong and China prominently.")
+if __name__ == "__main__":    
+    indexer = Indexer.Indexer()
+    indexer.indexDoc(1, "Hong Kong Universities", "Hong Kong has several prestigious universities including HKUST.")
+    indexer.indexDoc(2, "Chinese Universities", "China has many top universities such as Tsinghua and Peking University.")
+    indexer.indexDoc(3, "Education in Hong Kong", "The education system in Hong Kong is competitive with many international schools.")
+    indexer.indexDoc(4, "Top Asian Universities", "Asian universities like HKU, HKUST, Tsinghua, and NUS are among the best in the world.")
+    indexer.indexDoc(5, "University Rankings", "Global university rankings often feature institutions from Hong Kong and China prominently.")
+
+    engine = SearchEngine(indexer)
     
     # Perform searches
     print("Search for 'hong kong':", engine.search("hong kong"))
@@ -158,5 +153,5 @@ if __name__ == "__main__":
     print("Search for 'universities':", engine.search("universities"))
     print("Search for 'hong kong universities':", engine.search("hong kong universities"))
     if engine.search("hong kong universities"):
-        similar_pages = engine.similarSearch(engine.search("hong kong universities")[0], "hong kong universities")
-        print("\nSimilar pages to document", engine.search("hong kong universities")[0], ":", similar_pages)
+        similar_pages = engine.similarSearch(engine.search("hong kong universities")[0][0], "hong kong universities")
+        print("\nSimilar pages to document", engine.search("hong kong universities")[0][0], ":", [f"ID: {docId}" for docId,_,_ in similar_pages])

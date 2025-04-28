@@ -267,14 +267,18 @@ class File:
         return f"File[{self.file_id}]"
     
     def stop(self, text_list: List[str]):
-        stopwords = set(open("stopwords.txt").read().split("\n"))
+        stopwords = File.get_stop_words_set()
         return [word.lower() for word in text_list if word.lower() not in stopwords]
     
     def stem(self, text_list: List[str]):
         return [self.porter.strip_affixes(word) for word in text_list]
     
+    def get_stop_words_set():
+        stopwords = set(open("stopwords.txt").read().split("\n"))
+        return stopwords
+    
 class Indexer:
-    def __init__(self, files: List[File]):
+    def __init__(self):
         self.invInd = defaultdict(dict) 
         self.docs = {}  
         self.lenDoc = {}  
