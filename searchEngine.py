@@ -26,14 +26,21 @@ class SearchEngine:
                 candidate_docs.update(self.indexer.invInd[word].keys())
         scores = []
         for docId in candidate_docs:
-            score = self.calculate_doc_score(docId, allWd, phMatched)
-            scores.append((docId, score))
+            score, wordFreq = self.calculate_doc_score(docId, allWd, phMatched)
+            scores.append((docId, score, wordFreq))
         scores.sort(key=lambda x: x[1], reverse=True)
-        return [docId for docId, score in scores[:maxResults]]
+        return scores[:maxResults]
     
     def calculate_doc_score(self, docId, Qwd, phMatched):
         doc_info = self.indexer.docs[docId]
         allDocWd = doc_info['titleWd'] + doc_info['contentWd']
+        wordFreq = {}
+        for word in set(allDocWd):
+            wordFreq[word] = {
+                'total': allDocWd.count(word),
+                'title': doc_info['titleWd'].count(word),
+                'content': doc_info['contentWd'].count(word)
+            }
         wQ = {}
         for word in set(Qwd):
             tf_query = Qwd.count(word)
@@ -56,13 +63,13 @@ class SearchEngine:
         lenQ = math.sqrt(sum(w**2 for w in wQ.values()))
         lenDoc = self.indexer.lenDoc[docId]
         if lenQ == 0 or lenDoc == 0:
-            return 0
+            return 0, wordFreq
         cosSim = dotProduct / (lenQ * lenDoc)
         for phrase in phMatched:
             phWd = self.indexer.preText(phrase)
             if self.check_phrase_in_doc(docId, phWd):
                 cosSim *= 1.5  
-        return cosSim
+        return cosSim, wordFreq
     
     def check_phrase_in_doc(self, docId, phWd):
         if len(phWd) == 0:
