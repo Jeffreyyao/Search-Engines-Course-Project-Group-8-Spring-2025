@@ -249,5 +249,22 @@ class Database:
             })
         return pages
 
+    def load_word_frequencies(self) -> List[Dict[str, Any]]:
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT * FROM word_frequencies')
+        word_frequencies = []
+
+        for row in cursor.fetchall():
+            word, frequency = row
+            word_frequencies.append({
+                'word': word,
+                'frequency': frequency
+            })
+
+        return word_frequencies
+
+    def close(self):
+        self.conn.close()
+
     def close(self):
         self.conn.close()

@@ -7,19 +7,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Page:
-    def __init__(self, page_id, parent_id, url, title, last_modified, body):
+    def __init__(self, page_id, parent_id, url, title, last_modified, body, size):
         self.page_id = page_id
         self.parent_id = parent_id
         self.url = url
         self.title = title
         self.last_modified = last_modified
         self.body = body  # 新增 body 属性，存储页面内容
+        self.size = size  # 新增 size 属性，存储页面大小
         self.child_ids = []  # 存储子页面的ID
 
     def __repr__(self):
         return (f"Page(id={self.page_id}, parent_id={self.parent_id}, url='{self.url}', "
                 f"title='{self.title}', last_modified='{self.last_modified}', body='{self.body[:10]}...', "
-                f"child_ids={self.child_ids})")
+                f"size={self.size}, child_ids={self.child_ids})")
 
 
 class Spider:
@@ -69,6 +70,8 @@ class Spider:
         page_id = self.page_id_counter
         title = self.extract_title(content)  # 提取页面标题
         body = self.extract_text(content)
+        size = len(content)  # 计算页面大小
+
         self.page_index[url] = {
             'id': page_id,
             'content': content,
@@ -79,7 +82,7 @@ class Spider:
         self.id_to_url[page_id] = url
 
         # 创建页面对象并存储
-        page = Page(page_id, None, url, title, last_modified, body)
+        page = Page(page_id, None, url, title, last_modified, body, size)
         self.pages.append(page)
 
         # # 保存网页内容到本地文件
@@ -162,7 +165,7 @@ class Spider:
                         link_title = link_texts.get(link, 'No Title')  # 从父页面的链接文本字典中获取标题
                         self.pages[child_id].title = link_title
                         self.add_relation(page_id, child_id)
-
+        # print(self.pages)
     def crawl2(self):
         while self.queue and len(self.visited) < self.num_pages:
             current_url = self.queue.popleft()

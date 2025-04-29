@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关键词频率展示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #007bff; /* Blue */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker blue */
+        }
+    </style>
+</head>
+<body>
+    <h1>关键词频率</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>关键词</th>
+                <th>频率</th>
+                <th>操作</th> <!-- 新增操作列 -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for frequency in frequencies %}
+            <tr>
+                <td>{{ frequency.word }}</td>
+                <td>{{ frequency.frequency }}</td>
+                <td>
+                    <button onclick="queryKeyword('{{ frequency.word }}')">查询</button> <!-- 查询按钮 -->
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function queryKeyword(keyword) {
+            // 跳转到查询页面，并传递关键词作为参数
+            window.location.href = `/search?query=${encodeURIComponent(keyword)}`;
+        }
+    </script>
+</body>
+</html>

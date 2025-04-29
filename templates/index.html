@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>搜索引擎示例</title>
+    <title>Search Engine</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,6 +18,15 @@
         button {
             padding: 10px 15px;
             font-size: 16px;
+            margin-left: 10px; /* 添加左边距 */
+            background-color: #4CAF50; /* Green */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049; /* Darker green */
         }
     </style>
 </head>
@@ -25,12 +34,18 @@
     <h1>搜索引擎示例</h1>
     <input type="text" id="searchInput" placeholder="输入搜索内容...">
     <button onclick="performSearch()">搜索</button>
+    <button onclick="viewKeywords()">查看关键词列表</button> <!-- 新增按钮 -->
 
     <script>
         function performSearch() {
             const query = document.getElementById('searchInput').value;
             // 跳转到 search 路由，并传递查询参数
             window.location.href = `/search?query=${encodeURIComponent(query)}`;
+        }
+
+        function viewKeywords() {
+            // 跳转到关键词列表页面
+            window.location.href = '/keywords'; // 假设你的关键词列表路由是 /keywords
         }
     </script>
 </body>
