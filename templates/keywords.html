@@ -1,55 +1,64 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关键词频率展示</title>
+    <title>Keyword Frequency Display</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
             background-color: #f9f9f9;
+            padding: 20px;
         }
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 30px;
         }
         table {
             width: 80%;
-            margin: 20px auto;
+            margin: 0 auto;
             border-collapse: collapse;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden; /* 使边框圆角生效 */
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px;
             text-align: center;
         }
         th {
-            background-color: #4CAF50;
+            background-color: #4285f4; /* Google Blue */
             color: white;
         }
+        tr:nth-child(even) {
+            background-color: #f2f2f2; /* Zebra striping */
+        }
         button {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 14px;
-            background-color: #007bff; /* Blue */
+            background-color: #4CAF50; /* Green */
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #0056b3; /* Darker blue */
+            background-color: #45a049; /* Darker Green */
         }
     </style>
 </head>
 <body>
-    <h1>关键词频率</h1>
+    <h1>Keyword Frequency</h1>
     <table>
         <thead>
             <tr>
-                <th>关键词</th>
-                <th>频率</th>
-                <th>操作</th> <!-- 新增操作列 -->
+                <th>Keyword</th>
+                <th>Frequency</th>
+                <th>Action</th> <!-- Updated column header -->
             </tr>
         </thead>
         <tbody>
@@ -58,7 +67,7 @@
                 <td>{{ frequency.word }}</td>
                 <td>{{ frequency.frequency }}</td>
                 <td>
-                    <button onclick="queryKeyword('{{ frequency.word }}')">查询</button> <!-- 查询按钮 -->
+                    <button onclick="queryKeyword('{{ frequency.word }}')">Query</button> <!-- Query button -->
                 </td>
             </tr>
             {% endfor %}
@@ -67,7 +76,7 @@
 
     <script>
         function queryKeyword(keyword) {
-            // 跳转到查询页面，并传递关键词作为参数
+            // Redirect to the search page with the keyword as a parameter
             window.location.href = `/search?query=${encodeURIComponent(keyword)}`;
         }
     </script>

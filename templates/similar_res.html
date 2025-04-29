@@ -1,27 +1,32 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>搜索结果</title>
+    <title>Search Results</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
             background-color: #f9f9f9;
+            padding: 20px;
         }
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 30px;
         }
         .result-container {
             background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             padding: 20px;
             margin: 20px auto;
             width: 80%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+        .result-container:hover {
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
         }
         .result {
             margin-bottom: 20px;
@@ -33,11 +38,13 @@
         }
         .score {
             font-weight: bold;
-            color: #007bff;
+            color: #4285f4; /* Google Blue */
+            font-size: 1.2em;
         }
         .url {
-            color: #007bff;
+            color: #4285f4;
             text-decoration: none;
+            font-size: 1.1em;
         }
         .url:hover {
             text-decoration: underline;
@@ -49,36 +56,42 @@
         .keywords {
             margin-top: 10px;
             font-style: italic;
+            color: #777;
         }
         .parent-links, .child-links {
             margin-top: 10px;
             color: #555;
         }
+        .child-links ul {
+            padding-left: 20px;
+            list-style-type: disc;
+        }
     </style>
 </head>
 <body>
-    <h1>搜索结果</h1>
+    <h1>Search Results</h1>
     {% for result in search_results %}
     <div class="result-container">
         <div class="result">
-            <div class="score">{{ result.score }} {{ result.title }}</div>
+            <div class="score">{{ "%.2f"|format(result.score) }}</div> <!-- Format score to two decimal places -->
+            <div class="title">{{ result.title }}</div> <!-- Title displayed below the score -->
             <div class="url"><a href="{{ result.url }}">{{ result.url }}</a></div>
-            <div class="meta">最后修改时间: {{ result.last_modified }}, 页面大小: {{ result.size }} 字节</div>
+            <div class="meta">Last modified: {{ result.last_modified }}, Page size: {{ result.size }} bytes</div>
             <div class="keywords">
                 {% for keyword, freq in result.keywords.items() %}
-                {{ keyword }} {{ freq }};
+                {{ keyword }} ({{ freq }});
                 {% endfor %}
             </div>
         </div>
-        <div class="parent-link">
+        <div class="parent-links">
             {% if result.parent_link %}
-                <strong>父链接:</strong>
+                <strong>Parent Link:</strong>
                 <a href="{{ result.parent_link }}">{{ result.parent_link }}</a>
             {% endif %}
         </div>
         <div class="child-links">
             {% if result.child_links %}
-            <strong>子链接:</strong>
+            <strong>Child Links:</strong>
             <ul>
                 {% for child in result.child_links %}
                 <li><a href="{{ child }}">{{ child }}</a></li>

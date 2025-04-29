@@ -7,7 +7,9 @@ import database as Database
 import searchEngine as SearchEngine
 import sys
 import io
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 class Page:
     def __init__(self, page_id, parent_id, url, title, last_modified, body, size):
@@ -22,7 +24,8 @@ class Page:
 
 
 class SearchRes:
-    def __init__(self, page_id, parent_id, url, title, last_modified, score, size, keywords=None, parent_link=None, child_links=None):
+    def __init__(self, page_id, parent_id, url, title, last_modified, score, size, keywords=None, parent_link=None,
+                 child_links=None):
         self.page_id = page_id
         self.parent_id = parent_id
         self.url = url
@@ -126,8 +129,6 @@ class SearchService:
         res = db.load_word_frequencies()
         return res
 
-
-
     def get_link(self, id, pages):
         # 遍历 pages 列表，查找匹配的 page_id
         for page in pages:
@@ -148,7 +149,7 @@ class SearchService:
                 page = page_dict[doc_id]
                 # keywords_dict = {keyword: info['total'] for keyword, info in word_freq.items()}
                 keywords_dict = {keyword: info['total'] for index, (keyword, info) in enumerate(word_freq.items()) if
-                               index < 3}
+                                 index < 3}
 
                 search_result = SearchRes(
                     page_id=page.page_id,

@@ -166,37 +166,6 @@ class Spider:
                         self.pages[child_id].title = link_title
                         self.add_relation(page_id, child_id)
         # print(self.pages)
-    def crawl2(self):
-        while self.queue and len(self.visited) < self.num_pages:
-            current_url = self.queue.popleft()
-            if current_url in self.visited:
-                continue
-
-            html, last_modified = self.fetch_page(current_url)
-            if html is None:
-                continue
-
-            self.visited.add(current_url)
-            page_id = self.index_page(current_url, html, last_modified)
-
-            # Extract child links and their texts
-            child_links, link_texts = self.extract_links(html, current_url)
-            for link in child_links:
-                if link not in self.visited:
-                    if link not in self.page_index or \
-                            (self.page_index[link]['last_modified'] and
-                             last_modified and
-                             self.page_index[link]['last_modified'] < last_modified):
-                        self.queue.append(link)
-                        c_html, c_last_modified = self.fetch_page(link)
-                        # child_id = self.index_page(link, '', last_modified)  # Fetch child later
-                        child_id = self.index_page(link, c_html, last_modified)
-
-                        # 使用链接文本作为子页面标题
-                        link_title = link_texts.get(link, 'No Title')
-                        self.pages[child_id].title = link_title  # 更新子页面标题
-
-                        self.add_relation(page_id, child_id)  # 关联子页面
 
 
 if __name__ == "__main__":

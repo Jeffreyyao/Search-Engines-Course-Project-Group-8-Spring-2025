@@ -6,7 +6,9 @@ This is a search engine implementation that includes web crawling, indexing, and
 - Indexing system (indexer.py)
 - Search engine implementation (searchEngine.py)
 - Database management (database.py)
-- Main application (main.py)
+- Main application (app.py)
+- Request processing service (Service)
+- Front end page (templates)
 
 Dependencies:
 - Python 3.x
@@ -14,6 +16,7 @@ Dependencies:
 - Required Python packages:
   - requests
   - beautifulsoup4
+  - Flask
 
 Setup Instructions:
 1. Create and activate a virtual environment:
@@ -27,7 +30,7 @@ Setup Instructions:
 
 Running the Project:
 1. To run the search engine with a fresh database:
-   python main.py
+   python app.py
 
 2. To run the search engine using existing database:
    python main.py --load-db
@@ -35,7 +38,9 @@ Running the Project:
 3. The search engine will prompt you to enter search queries interactively.
 
 Project Structure:
-- main.py: Main application entry point
+- app.py: Main application entry point
+- Service: Handling various requests
+- templates: Front end page
 - getPage.py: Web page retrieval and parsing
 - indexer.py: Document indexing system
 - searchEngine.py: Search functionality implementation

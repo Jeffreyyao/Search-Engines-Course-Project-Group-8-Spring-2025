@@ -1,51 +1,137 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Engine</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             text-align: center;
-            margin-top: 50px;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align items to the top */
+            background-color: #f8f9fa;
+            padding-top: 50px; /* Add padding at the top */
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px; /* Increase bottom margin */
+            background: linear-gradient(90deg, #FF5733, #FFBD33, #75FF33, #33FFBD, #335BFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         input[type="text"] {
-            width: 300px;
-            padding: 10px;
-            font-size: 16px;
+            width: 400px;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #dcdcdc;
+            border-radius: 24px;
+            outline: none;
+            transition: border 0.3s;
+            margin: 0 auto; /* Center the input */
+            margin-bottom: 20px; /* Add bottom margin */
+        }
+        input[type="text"]:focus {
+            border: 1px solid #4285f4;
         }
         button {
-            padding: 10px 15px;
+            padding: 10px 20px;
             font-size: 16px;
-            margin-left: 10px; /* 添加左边距 */
-            background-color: #4CAF50; /* Green */
-            color: white;
+            margin-left: 10px;
             border: none;
-            border-radius: 5px;
+            border-radius: 24px;
             cursor: pointer;
+            background-color: #4285f4; /* Google Blue */
+            color: white;
+            transition: background-color 0.3s, transform 0.2s;
         }
         button:hover {
-            background-color: #45a049; /* Darker green */
+            background-color: #357ae8; /* Darker Blue */
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .history-container {
+            position: absolute;
+            right: 20px;
+            top: 100px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: none; /* Initially hidden */
+            padding: 10px;
+            z-index: 1000;
+        }
+        .history-item {
+            margin: 5px 0;
+        }
+        .history-item button {
+            margin-left: 10px;
+            background-color: #f44336; /* Red */
         }
     </style>
 </head>
 <body>
-    <h1>搜索引擎示例</h1>
-    <input type="text" id="searchInput" placeholder="输入搜索内容...">
-    <button onclick="performSearch()">搜索</button>
-    <button onclick="viewKeywords()">查看关键词列表</button> <!-- 新增按钮 -->
+    <h1>Search Engine</h1>
+    <input type="text" id="searchInput" placeholder="Enter search content...">
+    <div class="button-container">
+        <button onclick="performSearch()">Search</button>
+        <button onclick="viewKeywords()">View Keywords List</button>
+        <button onclick="toggleHistory()">View Search History</button>
+    </div>
+
+    <div class="history-container" id="historyContainer">
+        <h3>Search History</h3>
+        <div id="historyList"></div>
+    </div>
 
     <script>
+        // 模拟历史记录数据
+        let searchHistory = [];
+
         function performSearch() {
             const query = document.getElementById('searchInput').value;
-            // 跳转到 search 路由，并传递查询参数
-            window.location.href = `/search?query=${encodeURIComponent(query)}`;
+            if (query) {
+                searchHistory.push(query); // 将查询添加到历史记录
+                window.location.href = `/search?query=${encodeURIComponent(query)}`;
+            }
         }
 
         function viewKeywords() {
-            // 跳转到关键词列表页面
-            window.location.href = '/keywords'; // 假设你的关键词列表路由是 /keywords
+            window.location.href = '/keywords';
+        }
+
+        function toggleHistory() {
+            const historyContainer = document.getElementById('historyContainer');
+            historyContainer.style.display = historyContainer.style.display === 'none' ? 'block' : 'none';
+            displayHistory();
+        }
+
+        function displayHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = ''; // 清空历史记录列表
+
+            searchHistory.forEach((item) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    ${item} <button onclick="performPreviousSearch('${item}')">查询</button>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        function performPreviousSearch(query) {
+            window.location.href = `/search?query=${encodeURIComponent(query)}`;
         }
     </script>
 </body>
