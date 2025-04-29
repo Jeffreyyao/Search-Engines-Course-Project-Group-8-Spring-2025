@@ -24,7 +24,7 @@ def main(load_from_db: bool = False):
         print(invInd)
 
         # Create indexer with loaded data
-        indexer = Indexer.Indexer([])
+        indexer = Indexer.Indexer()
         indexer.docs = docs
         indexer.lenDoc = lenDoc
         indexer.docNo = docNo
@@ -48,7 +48,7 @@ def main(load_from_db: bool = False):
             file = Indexer.File(page)
             files.append(file)
             print(f"ID: {file.file_id}, Title: {file.title}, Body: {file.body}")
-        indexer = Indexer.Indexer(files)
+        indexer = Indexer.Indexer()
         for file in files:
             indexer.indexDoc(file.file_id, file.title, file.body)
 
@@ -64,9 +64,9 @@ def main(load_from_db: bool = False):
     for query in queries:
         results = engine.search(query)
         # Convert results to list of (doc_id, score) tuples
-        result_tuples = [(doc_id, 1.0) for doc_id in results]  # Using 1.0 as default score
+        result_tuples = [(doc_id, score) for (doc_id, score, wordFreq) in results]
         db.save_search_results(query, result_tuples)
-        print(f"Search for '{query}':", results)
+        print(f"Search for '{query}':", result_tuples)
 
     # Close database connection
     db.close()
