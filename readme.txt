@@ -27,6 +27,7 @@ Setup Instructions:
 
 2. Install required packages:
    pip install requests beautifulsoup4
+   pip install Flask
 
 Running the Project:
 1. To run the search engine with a fresh database:
