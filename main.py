@@ -6,10 +6,11 @@ import argparse
 
 from typing import List
 
+
 def main(load_from_db: bool = False):
     # Initialize database
     db = Database.Database()
-    
+
     if load_from_db:
         print("======================= Loading Database =======================")
         # Load indexer data from database
@@ -21,7 +22,7 @@ def main(load_from_db: bool = False):
         print(docNo)
         print(freqWordDoc)
         print(invInd)
-        
+
         # Create indexer with loaded data
         indexer = Indexer.Indexer([])
         indexer.docs = docs
@@ -29,14 +30,14 @@ def main(load_from_db: bool = False):
         indexer.docNo = docNo
         indexer.freqWordDoc = freqWordDoc
         indexer.invInd = invInd
-        
+
     else:
         print("======================= Crawler =======================")
         start_url = 'https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm'
         num_pages = 10
         spider = GetPage.Spider(start_url, num_pages)
         spider.crawl()
-        
+
         # Save crawled pages to database
         db.save_pages(spider.pages)
 
@@ -57,7 +58,7 @@ def main(load_from_db: bool = False):
     print("\n\n\n")
     print("======================= Search Engine =======================")
     engine = SearchEngine.SearchEngine(indexer)
-    
+
     # Perform searches and save results
     queries = ["hong kong", '"science"', "universities", "hong kong universities"]
     for query in queries:
@@ -66,13 +67,14 @@ def main(load_from_db: bool = False):
         result_tuples = [(doc_id, 1.0) for doc_id in results]  # Using 1.0 as default score
         db.save_search_results(query, result_tuples)
         print(f"Search for '{query}':", results)
-    
+
     # Close database connection
     db.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Search Engine')
     parser.add_argument('--load-db', action='store_true', help='Load indexer data from database instead of crawling')
     args = parser.parse_args()
-    
+
     main(load_from_db=args.load_db)

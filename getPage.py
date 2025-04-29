@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import deque
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Page:
@@ -17,7 +18,7 @@ class Page:
 
     def __repr__(self):
         return (f"Page(id={self.page_id}, parent_id={self.parent_id}, url='{self.url}', "
-                f"title='{self.title}', last_modified='{self.last_modified}', body='{self.body}...', "
+                f"title='{self.title}', last_modified='{self.last_modified}', body='{self.body[:10]}...', "
                 f"child_ids={self.child_ids})")
 
 
@@ -123,6 +124,46 @@ class Spider:
                 break
 
     def crawl(self):
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            while self.queue and len(self.visited) < self.num_pages:
+                current_url = self.queue.popleft()
+                if current_url in self.visited:
+                    continue
+
+                # 抓取父页面
+                future = executor.submit(self.fetch_page, current_url)  # 提交任务
+                html, last_modified = future.result()  # 获取结果
+
+                if html is None:
+                    continue
+
+                self.visited.add(current_url)
+                page_id = self.index_page(current_url, html, last_modified)
+
+                # 提取子链接及其文本
+                child_links, link_texts = self.extract_links(html, current_url)
+
+                for link in child_links:
+                    if link not in self.visited:
+                        if link not in self.page_index or \
+                                (self.page_index[link]['last_modified'] and
+                                 last_modified and
+                                 self.page_index[link]['last_modified'] < last_modified):
+                            self.queue.append(link)
+
+                # 处理子链接的抓取
+                futures = {executor.submit(self.fetch_page, link): link for link in child_links}  # 提交所有子链接的任务
+                for future in as_completed(futures):  # 等待完成
+                    link = futures[future]
+                    c_html, c_last_modified = future.result()  # 获取结果
+                    if c_html is not None:
+                        child_id = self.index_page(link, c_html, c_last_modified)
+                        # 使用父页面的链接文本作为子页面标题
+                        link_title = link_texts.get(link, 'No Title')  # 从父页面的链接文本字典中获取标题
+                        self.pages[child_id].title = link_title
+                        self.add_relation(page_id, child_id)
+
+    def crawl2(self):
         while self.queue and len(self.visited) < self.num_pages:
             current_url = self.queue.popleft()
             if current_url in self.visited:
@@ -153,13 +194,6 @@ class Spider:
                         self.pages[child_id].title = link_title  # 更新子页面标题
 
                         self.add_relation(page_id, child_id)  # 关联子页面
-
-        print("Crawling completed.")
-        print(f"Total pages indexed: {len(self.visited)}")
-        print(f"Parent-Child Relations: {self.parent_child}")
-        print(f"ID to URL Mapping: {self.id_to_url}")  # 打印 ID 和 URL 的对应关系
-        print(f"Inverted Index: {self.inverted_index}")  # 打印倒排索引
-        print(f"Pages: {self.pages}")  # 打印页面对象数组
 
 
 if __name__ == "__main__":

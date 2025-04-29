@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索引擎示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-$END$
+    <h1>搜索引擎示例</h1>
+    <input type="text" id="searchInput" placeholder="输入搜索内容...">
+    <button onclick="performSearch()">搜索</button>
+
+    <script>
+        function performSearch() {
+            const query = document.getElementById('searchInput').value;
+            // 跳转到 search 路由，并传递查询参数
+            window.location.href = `/search?query=${encodeURIComponent(query)}`;
+        }
+    </script>
 </body>
 </html>

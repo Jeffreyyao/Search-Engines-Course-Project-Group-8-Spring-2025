@@ -1,10 +1,53 @@
+<!-- results.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索结果</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-$END$
+    <h1>搜索结果</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>页面ID</th>
+                <th>标题</th>
+                <th>URL</th>
+                <th>最后修改时间</th>
+                <th>分数</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in search_results %}
+            <tr>
+                <td>{{ result.page_id }}</td>
+                <td>{{ result.title }}</td>
+                <td><a href="{{ result.url }}">{{ result.url }}</a></td>
+                <td>{{ result.last_modified }}</td>
+                <td>{{ result.score }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
